@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Jeu de Mathématiques SEGPA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Jeu de Mathématiques</h1>
+        <p class="operation-order">Effectuez les opérations dans l'ordre : a × b + ou - c</p>
+    </header>
+
+    <main>
+        <div class="game-wrapper">
+            <!-- Section de la grille et de la cible -->
+            <div class="game-section">
+                <div class="target" id="target">Cible : 20</div>
+                <div class="grid" id="grid">
+                    <!-- Cellules générées dynamiquement -->
+                </div>
+
+                <!-- Zone dédiée au calcul -->
+                <div class="calculation-area">
+                    <h2>Votre Calcul</h2>
+                    <div id="calculation">a × b ? c</div>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+                <div class="controls">
+                    <button id="reset-button">Réinitialiser</button>
+                    <button id="save-button">Enregistrer Partie</button>
+                    <button id="show-solutions-button">Afficher Solutions</button> <!-- Bouton Magique -->
+                </div>
+                <div class="scoreboard">
+                    <h2>Scoreboard</h2>
+                    <ul id="scoreboard-list">
+                        <!-- Scores enregistrés -->
+                    </ul>
+                </div>
+
+                <!-- Section des solutions -->
+                <div class="solutions-section" id="solutions-section">
+                    <h2>Solutions Possibles</h2>
+                    <ul id="solutions-list">
+                        <!-- Solutions affichées ici -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section des opérateurs -->
+            <div class="operator-section">
+                <h2>Choisissez l'opérateur</h2>
+                <div class="operators">
+                    <button class="operator-button" data-operator="+">+</button>
+                    <button class="operator-button" data-operator="-">-</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
