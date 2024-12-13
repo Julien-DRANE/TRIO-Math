@@ -319,11 +319,13 @@ function resetGame() {
             target = getRandomInt(5, 10);
         }
         targetElement.textContent = `Cible : ${target}`;
+        console.log(`Tentative ${attempts}: Cible ${target}`);
 
         // Générer les nombres avec au moins 6 solutions
         const solutionCount = generateNumbersWithAtLeastSixSolutions(6);
         generateGrid();
         const solutions = findAllSolutions();
+        console.log(`Solutions trouvées: ${solutions.length}`);
 
         if (solutions.length >= 6) {
             success = true;
