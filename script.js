@@ -12,11 +12,13 @@ const calculationElement = document.getElementById('calculation');
 const operatorButtons = document.querySelectorAll('.operator-button');
 const solutionsSection = document.getElementById('solutions-section');
 const solutionsList = document.getElementById('solutions-list');
+const modeSelect = document.getElementById('mode'); // Sélecteur de mode
 
 let target = 20; // Cible initiale, sera mise à jour
 let numbers = []; // Nombres de la grille
 let selectedCells = []; // Cellules sélectionnées
 let selectedOperator = null; // Opérateur sélectionné
+let currentMode = 'normal'; // Mode par défaut
 
 /**
  * Génère des nombres aléatoires dans la grille avec au moins 6 solutions.
@@ -310,8 +312,12 @@ function resetGame() {
 
     while (attempts < maxAttempts && !success) {
         attempts++;
-        // Générer une cible aléatoire entre 10 et 50
-        target = getRandomInt(10, 50);
+        // Générer une cible aléatoire selon le mode
+        if (currentMode === 'normal') {
+            target = getRandomInt(10, 50);
+        } else if (currentMode === 'facile') {
+            target = getRandomInt(5, 10);
+        }
         targetElement.textContent = `Cible : ${target}`;
 
         // Générer les nombres avec au moins 6 solutions
@@ -530,6 +536,12 @@ showSolutionsButton.addEventListener('click', () => {
 // Ajouter des écouteurs d'événements aux boutons opérateurs
 operatorButtons.forEach(button => {
     button.addEventListener('click', selectOperator);
+});
+
+// Ajouter un écouteur d'événement au sélecteur de mode
+modeSelect.addEventListener('change', (event) => {
+    currentMode = event.target.value;
+    resetGame();
 });
 
 // Événements pour les boutons

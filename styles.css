@@ -371,3 +371,69 @@ button:disabled {
         max-height: 150px;
     }
 }
+/* styles.css */
+
+/* ... code existant ... */
+
+/* Styles pour la sélection de mode */
+.mode-selection {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mode-selection label {
+    font-size: 18px;
+    color: #6a4c93; /* Violet pastel */
+}
+
+.mode-selection select {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 2px solid #d3d3d3;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.mode-selection select:hover {
+    border-color: #90caf9; /* Bleu pastel clair */
+}
+
+.mode-selection select:focus {
+    outline: none;
+    border-color: #5c6bc0;
+}
+
+/* Adaptations pour les écrans mobiles */
+@media (max-width: 768px) {
+    /* ... autres styles existants ... */
+
+    .mode-selection {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .mode-selection label, .mode-selection select {
+        font-size: 16px;
+    }
+
+    /* ... autres styles existants ... */
+}
+
+@media (max-width: 480px) {
+    /* ... autres styles existants ... */
+
+    .mode-selection {
+        gap: 5px;
+    }
+
+    .mode-selection label, .mode-selection select {
+        font-size: 14px;
+    }
+
+    /* ... autres styles existants ... */
+}

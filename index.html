@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Meta tag viewport ajoutée -->
-    <title>Jeu de Mathématiques SEGPA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Mathématiques</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,7 +17,17 @@
         <div class="game-wrapper">
             <div class="game-section">
                 <div class="target" id="target">Cible : 20</div>
-                <div class="grid-operators-container"> <!-- Nouveau conteneur -->
+
+                <!-- Ajout de la sélection de mode -->
+                <div class="mode-selection">
+                    <label for="mode">Mode :</label>
+                    <select id="mode">
+                        <option value="normal" selected>Normal</option>
+                        <option value="facile">Facile</option>
+                    </select>
+                </div>
+
+                <div class="grid-operators-container">
                     <div class="grid" id="grid">
                         <!-- Cellules générées dynamiquement -->
                     </div>
@@ -40,7 +50,7 @@
                 <div class="controls">
                     <button id="reset-button">Réinitialiser</button>
                     <button id="save-button">Enregistrer Partie</button>
-                    <button id="show-solutions-button">Afficher Solutions</button> <!-- Bouton Magique -->
+                    <button id="show-solutions-button">Afficher Solutions</button>
                 </div>
                 <div class="scoreboard">
                     <h2>Scoreboard</h2>
