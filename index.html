@@ -15,11 +15,19 @@
 
     <main>
         <div class="game-wrapper">
-            <!-- Section de la grille et de la cible -->
             <div class="game-section">
                 <div class="target" id="target">Cible : 20</div>
-                <div class="grid" id="grid">
-                    <!-- Cellules générées dynamiquement -->
+                <div class="grid-operators-container"> <!-- Nouveau conteneur -->
+                    <div class="grid" id="grid">
+                        <!-- Cellules générées dynamiquement -->
+                    </div>
+                    <div class="operator-section">
+                        <h2>Choisissez l'opérateur</h2>
+                        <div class="operators">
+                            <button class="operator-button" data-operator="+">+</button>
+                            <button class="operator-button" data-operator="-">-</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Zone dédiée au calcul -->
@@ -47,15 +55,6 @@
                     <ul id="solutions-list">
                         <!-- Solutions affichées ici -->
                     </ul>
-                </div>
-            </div>
-
-            <!-- Section des opérateurs -->
-            <div class="operator-section">
-                <h2>Choisissez l'opérateur</h2>
-                <div class="operators">
-                    <button class="operator-button" data-operator="+">+</button>
-                    <button class="operator-button" data-operator="-">-</button>
                 </div>
             </div>
         </div>

@@ -45,12 +45,20 @@ h1 {
     color: #ff6f61; /* Rouge pastel */
 }
 
+/* Nouveau conteneur pour grille et opérateurs */
+.grid-operators-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 20px; /* Espace en dessous pour séparer des autres éléments */
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(5, 60px);
     grid-template-rows: repeat(5, 60px);
     gap: 10px;
-    margin-bottom: 20px;
 }
 
 .cell {
@@ -172,15 +180,15 @@ button:disabled {
 }
 
 .operator-section {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 .operator-section h2 {
-    color: #6a4c93; /* Violet pastel */
+    font-size: 20px;
     margin-bottom: 10px;
+    color: #6a4c93; /* Violet pastel */
 }
 
 .operators {
@@ -264,16 +272,22 @@ button:disabled {
     border-radius: 5px;
 }
 
-/* Responsive Design pour Smartphones */
+/* Responsive Design pour Smartphones et Tablettes */
 @media (max-width: 768px) {
     .game-wrapper {
         flex-direction: column;
         align-items: center;
     }
 
-    .game-section, .operator-section {
+    .game-section {
         width: 100%;
-        max-width: none;
+    }
+
+    .grid-operators-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
     }
 
     .grid {
@@ -282,7 +296,17 @@ button:disabled {
         gap: 8px;
     }
 
-    .cell {
+    .operator-section h2 {
+        font-size: 18px;
+    }
+
+    .operators {
+        flex-direction: row; /* Alignement horizontal des boutons opérateurs */
+        gap: 10px;
+    }
+
+    .operator-button {
+        padding: 12px 24px;
         font-size: 18px;
     }
 
@@ -295,9 +319,8 @@ button:disabled {
         gap: 10px;
     }
 
-    .operator-button {
-        padding: 12px 24px;
-        font-size: 18px;
+    .operator-section {
+        width: 100%; /* Assurer que la section opérateurs prend toute la largeur */
     }
 
     .scoreboard, .solutions-section {
