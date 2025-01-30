@@ -20,6 +20,9 @@ let selectedCells = []; // Cellules sélectionnées
 let selectedOperator = null; // Opérateur sélectionné
 let currentMode = 'normal'; // Mode par défaut
 
+// NOUVEAU : on stockera ici tous les triplets alignés (retournés par getAllAlignedLines()).
+let allAlignedTriplets = [];
+
 /**
  * Génère des nombres aléatoires dans la grille avec au moins 6 solutions.
  * @param {number} desiredSolutionsCount - Nombre minimum de solutions souhaitées.
@@ -36,8 +39,7 @@ function generateNumbersWithAtLeastSixSolutions(desiredSolutionsCount = 6) {
     // Si moins de 6 triplets sont disponibles, ajuster la cible ou informer l'utilisateur
     if (allPossibleTriplets.length < desiredSolutionsCount) {
         console.warn(`Pour la cible ${target}, seulement ${allPossibleTriplets.length} triplets sont disponibles.`);
-        // Vous pouvez choisir de modifier la cible ou d'ajuster le nombre de solutions
-        // Ici, nous allons continuer avec le nombre disponible
+        // Vous pouvez choisir de modifier la cible ou d'ajuster le nombre de solutions.
     }
 
     // Mélanger les triplets pour une distribution aléatoire
@@ -51,7 +53,11 @@ function generateNumbersWithAtLeastSixSolutions(desiredSolutionsCount = 6) {
     let lineIndex = 0;
 
     // Assigner des triplets aux lignes alignées
-    while (solutions.length < desiredSolutionsCount && tripletIndex < shuffledTriplets.length && lineIndex < shuffledLines.length) {
+    while (
+        solutions.length < desiredSolutionsCount &&
+        tripletIndex < shuffledTriplets.length &&
+        lineIndex < shuffledLines.length
+    ) {
         const triplet = shuffledTriplets[tripletIndex];
         const line = shuffledLines[lineIndex];
 
@@ -62,7 +68,8 @@ function generateNumbersWithAtLeastSixSolutions(desiredSolutionsCount = 6) {
             for (let j = 0; j < 3; j++) {
                 const cellIndex = line[j];
                 const existingNumber = numbers[cellIndex];
-                const newNumber = (j === 0) ? triplet.a : (j === 1) ? triplet.b : triplet.c;
+                const newNumber =
+                    j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
 
                 if (existingNumber !== 0 && existingNumber !== newNumber) {
                     conflict = true;
@@ -74,7 +81,8 @@ function generateNumbersWithAtLeastSixSolutions(desiredSolutionsCount = 6) {
                 // Assignation des nombres à la ligne
                 for (let j = 0; j < 3; j++) {
                     const cellIndex = line[j];
-                    const newNumber = (j === 0) ? triplet.a : (j === 1) ? triplet.b : triplet.c;
+                    const newNumber =
+                        j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
                     numbers[cellIndex] = newNumber;
                 }
 
@@ -150,6 +158,43 @@ function generateGrid() {
 }
 
 /**
+ * Vérifie si on peut sélectionner une nouvelle cellule (newIndex)
+ * en restant dans un alignement (lignes/colonnes/diagonales de 3).
+ */
+function canSelectCell(newIndex) {
+    // On récupère la sélection actuelle + la nouvelle cellule
+    const tentative = [...selectedCells, newIndex];
+    // On trie pour comparer plus simplement (ex: [1,2] vs [2,1])
+    tentative.sort((a,b) => a - b);
+
+    // Si on n'a aucune cellule, on peut sélectionner n'importe quoi en premier
+    if (selectedCells.length === 0) {
+        return true;
+    }
+
+    // On parcourt allAlignedTriplets pour voir si 'tentative' est "compatible"
+    // avec un triplet existant
+    const possible = allAlignedTriplets.some(line => {
+        // line est un tableau de 3 indices, ex: [0,1,2]
+        const sortedLine = [...line].sort((a,b) => a - b);
+
+        if (tentative.length === 1) {
+            // On a juste 1 cellule => c'est toujours ok
+            return true;
+        } else if (tentative.length === 2) {
+            // On veut que ces 2 indices soient inclus dans 'line'
+            return tentative.every(idx => sortedLine.includes(idx));
+        } else if (tentative.length === 3) {
+            // On veut exactement un triplet identique
+            return JSON.stringify(sortedLine) === JSON.stringify(tentative);
+        }
+        return false;
+    });
+
+    return possible;
+}
+
+/**
  * Gère la sélection des cellules par l'utilisateur.
  * @param {Event} event - L'événement de clic sur une cellule.
  */
@@ -157,15 +202,25 @@ function selectCell(event) {
     const cell = event.target;
     const index = parseInt(cell.dataset.index, 10);
 
+    // Si on reclique sur la même cellule, on la désélectionne
     if (selectedCells.includes(index)) {
-        // Déselectionner la cellule
         selectedCells = selectedCells.filter(i => i !== index);
         cell.classList.remove('selected');
-    } else {
+        updateCalculationDisplay();
+        updateOperatorButtonsState();
+        return;
+    }
+
+    // Vérifier si on peut ajouter cette cellule en respectant l'alignement
+    if (canSelectCell(index)) {
         if (selectedCells.length < 3) {
             selectedCells.push(index);
             cell.classList.add('selected');
         }
+    } else {
+        // Ici, on peut soit ne rien faire, soit afficher un message d'erreur
+        // alert("Ces cellules ne sont pas côte à côte !");
+        return;
     }
 
     updateCalculationDisplay();
@@ -258,7 +313,8 @@ function performCalculation() {
 
     // Désactiver les boutons opérateurs après le calcul
     operatorButtons.forEach(button => button.disabled = true);
-     // ==> Remettre à zéro la sélection :
+
+    // ==> Remettre à zéro la sélection :
     clearSelection();
 }
 
@@ -326,6 +382,12 @@ function resetGame() {
         // Générer les nombres avec au moins 6 solutions
         const solutionCount = generateNumbersWithAtLeastSixSolutions(6);
         generateGrid();
+
+        // (Re)définir allAlignedTriplets pour la grille 5x5
+        // Note : la grille 5x5 n'a pas changé de dimensions, 
+        // mais on réinitialise par précaution si un jour on change la taille.
+        allAlignedTriplets = getAllAlignedLines();
+
         const solutions = findAllSolutions();
         console.log(`Solutions trouvées: ${solutions.length}`);
 
@@ -386,7 +448,7 @@ function getRandomInt(min, max) {
  * @returns {Array} - Tableau mélangé.
  */
 function shuffleArray(array) {
-    for (let i = array.length -1; i > 0; i--) {
+    for (let i = array.length - 1; i > 0; i--) {
         const j = getRandomInt(0, i);
         [array[i], array[j]] = [array[j], array[i]];
     }
@@ -435,8 +497,8 @@ function findPossibleTriplets(target) {
 }
 
 /**
- * Obtient toutes les lignes alignées de trois cellules dans la grille.
- * @returns {Array} - Liste des lignes alignées.
+ * Obtient toutes les lignes alignées de trois cellules dans la grille (indices [0..24]).
+ * @returns {Array} - Liste (tableau) de triplets [i, j, k].
  */
 function getAllAlignedLines() {
     let lines = [];
@@ -465,7 +527,7 @@ function getAllAlignedLines() {
         }
     }
 
-    // Diagonale descendante (\) (3 diagonales principales)
+    // Diagonale descendante (\)
     for (let y = 0; y <= gridSize - 3; y++) {
         for (let x = 0; x <= gridSize - 3; x++) {
             const line = [
@@ -477,7 +539,7 @@ function getAllAlignedLines() {
         }
     }
 
-    // Diagonale montante (/) (3 diagonales principales)
+    // Diagonale montante (/)
     for (let y = 2; y < gridSize; y++) {
         for (let x = 0; x <= gridSize - 3; x++) {
             const line = [
