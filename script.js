@@ -258,6 +258,8 @@ function performCalculation() {
 
     // Désactiver les boutons opérateurs après le calcul
     operatorButtons.forEach(button => button.disabled = true);
+     // ==> Remettre à zéro la sélection :
+    clearSelection();
 }
 
 /**
