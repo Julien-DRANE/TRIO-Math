@@ -143,7 +143,7 @@ function generateGrid() {
 }
 
 /**
- * Vérifie la sélection en s'assurant que les cellules restent alignées.
+ * Vérifie que la nouvelle sélection reste alignée.
  */
 function canSelectCell(newIndex) {
   const tentative = [...selectedCells, newIndex];
@@ -259,11 +259,11 @@ function performCalculation() {
     feedbackElement.innerHTML = `Correct ! ${expression} = ${target}`;
     feedbackElement.className = 'feedback correct';
     highlightSolution(a, b, c, selectedOperator);
-    saveScore('Gagné');
+    saveScore(`${expression} = ${target} (Gagné)`);
   } else {
     feedbackElement.innerHTML = `Incorrect. ${expression} = ${result} ≠ ${target}`;
     feedbackElement.className = 'feedback incorrect';
-    saveScore('Perdu');
+    saveScore(`${expression} = ${result} (Perdu)`);
   }
 
   operatorButtons.forEach(button => button.disabled = true);
@@ -368,12 +368,12 @@ function resetGame() {
 }
 
 /**
- * Enregistre le score de la partie.
+ * Enregistre dans le scoreboard l'opération effectuée.
+ * Ici, on affiche l'opération (avec le résultat et le statut) plutôt que l'heure.
  */
-function saveScore(result) {
-  const timestamp = new Date().toLocaleTimeString();
+function saveScore(operation) {
   const li = document.createElement('li');
-  li.innerHTML = `${timestamp} - ${result}`;
+  li.innerHTML = operation;
   scoreboardList.prepend(li);
 }
 
@@ -544,7 +544,9 @@ modeSelect.addEventListener('change', (event) => {
 resetButton.addEventListener('click', resetGame);
 saveButton.addEventListener('click', () => {
   if (feedbackElement.textContent) {
-    saveScore(feedbackElement.classList.contains('correct') ? 'Gagné' : 'Perdu');
+    // Si le bouton "Enregistrer Partie" est cliqué, on réenregistre la dernière opération
+    // (la fonction saveScore est normalement appelée dès le calcul)
+    saveScore(feedbackElement.textContent);
   }
 });
 
