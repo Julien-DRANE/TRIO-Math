@@ -1,12 +1,12 @@
 // script.js
 
-const gridSize = 5; // 5x5 grille
+const gridSize = 5; // Grille 5x5
 const gridElement = document.getElementById('grid');
 const targetElement = document.getElementById('target');
 const feedbackElement = document.getElementById('feedback');
 const resetButton = document.getElementById('reset-button');
 const saveButton = document.getElementById('save-button');
-const showSolutionsButton = document.getElementById('show-solutions-button'); // Bouton Magique
+const showSolutionsButton = document.getElementById('show-solutions-button'); // Bouton pour afficher les solutions
 const scoreboardList = document.getElementById('scoreboard-list');
 const calculationElement = document.getElementById('calculation');
 const operatorButtons = document.querySelectorAll('.operator-button');
@@ -14,608 +14,538 @@ const solutionsSection = document.getElementById('solutions-section');
 const solutionsList = document.getElementById('solutions-list');
 const modeSelect = document.getElementById('mode'); // Sélecteur de mode
 
-let target = 20; // Cible initiale, sera mise à jour
+let target = 20; // Cible initiale (sera mise à jour)
 let numbers = []; // Nombres de la grille
 let selectedCells = []; // Cellules sélectionnées
 let selectedOperator = null; // Opérateur sélectionné
 let currentMode = 'normal'; // Mode par défaut
 
-// NOUVEAU : on stockera ici tous les triplets alignés (retournés par getAllAlignedLines()).
+// Stocke ici tous les triplets alignés (retournés par getAllAlignedLines())
 let allAlignedTriplets = [];
 
 /**
- * Génère des nombres aléatoires dans la grille avec au moins 6 solutions.
+ * Génère des nombres dans la grille avec au moins "desiredSolutionsCount" solutions.
  * @param {number} desiredSolutionsCount - Nombre minimum de solutions souhaitées.
  * @returns {number} - Nombre de solutions assignées.
  */
 function generateNumbersWithAtLeastSixSolutions(desiredSolutionsCount = 6) {
-    let solutions = [];
-    let assignedLines = new Set();
-    numbers = Array(gridSize * gridSize).fill(0); // Réinitialiser la grille
+  let solutions = [];
+  let assignedLines = new Set();
+  numbers = Array(gridSize * gridSize).fill(0); // Réinitialiser la grille
 
-    // Trouver tous les triplets possibles pour la cible actuelle
-    const allPossibleTriplets = findPossibleTriplets(target);
+  // Trouver tous les triplets possibles pour la cible actuelle
+  const allPossibleTriplets = findPossibleTriplets(target);
 
-    // Si moins de 6 triplets sont disponibles, ajuster la cible ou informer l'utilisateur
-    if (allPossibleTriplets.length < desiredSolutionsCount) {
-        console.warn(`Pour la cible ${target}, seulement ${allPossibleTriplets.length} triplets sont disponibles.`);
-        // Vous pouvez choisir de modifier la cible ou d'ajuster le nombre de solutions.
-    }
+  if (allPossibleTriplets.length < desiredSolutionsCount) {
+    console.warn(`Pour la cible ${target}, seulement ${allPossibleTriplets.length} triplets sont disponibles.`);
+  }
 
-    // Mélanger les triplets pour une distribution aléatoire
-    const shuffledTriplets = shuffleArray([...allPossibleTriplets]);
+  // Mélanger les triplets
+  const shuffledTriplets = shuffleArray([...allPossibleTriplets]);
 
-    // Obtenir toutes les lignes alignées de trois cellules
-    const allLines = getAllAlignedLines();
-    const shuffledLines = shuffleArray([...allLines]);
+  // Obtenir toutes les lignes alignées
+  const allLines = getAllAlignedLines();
+  const shuffledLines = shuffleArray([...allLines]);
 
-    let tripletIndex = 0;
-    let lineIndex = 0;
+  let tripletIndex = 0;
+  let lineIndex = 0;
 
-    // Assigner des triplets aux lignes alignées
-    while (
-        solutions.length < desiredSolutionsCount &&
-        tripletIndex < shuffledTriplets.length &&
-        lineIndex < shuffledLines.length
-    ) {
-        const triplet = shuffledTriplets[tripletIndex];
-        const line = shuffledLines[lineIndex];
+  while (
+    solutions.length < desiredSolutionsCount &&
+    tripletIndex < shuffledTriplets.length &&
+    lineIndex < shuffledLines.length
+  ) {
+    const triplet = shuffledTriplets[tripletIndex];
+    const line = shuffledLines[lineIndex];
 
-        // Vérifier si la ligne n'a pas déjà été assignée
-        if (!assignedLines.has(line.join(','))) {
-            // Vérifier la compatibilité avec les cellules déjà assignées
-            let conflict = false;
-            for (let j = 0; j < 3; j++) {
-                const cellIndex = line[j];
-                const existingNumber = numbers[cellIndex];
-                const newNumber =
-                    j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
+    if (!assignedLines.has(line.join(','))) {
+      let conflict = false;
+      for (let j = 0; j < 3; j++) {
+        const cellIndex = line[j];
+        const existingNumber = numbers[cellIndex];
+        const newNumber = j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
 
-                if (existingNumber !== 0 && existingNumber !== newNumber) {
-                    conflict = true;
-                    break;
-                }
-            }
-
-            if (!conflict) {
-                // Assignation des nombres à la ligne
-                for (let j = 0; j < 3; j++) {
-                    const cellIndex = line[j];
-                    const newNumber =
-                        j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
-                    numbers[cellIndex] = newNumber;
-                }
-
-                solutions.push({ triplet, line });
-                assignedLines.add(line.join(','));
-            }
+        if (existingNumber !== 0 && existingNumber !== newNumber) {
+          conflict = true;
+          break;
         }
+      }
 
-        tripletIndex++;
-        lineIndex++;
-    }
-
-    // Remplir les cellules restantes avec des nombres aléatoires entre 1 et 10
-    for (let i = 0; i < numbers.length; i++) {
-        if (numbers[i] === 0) {
-            numbers[i] = getRandomInt(1, 10);
+      if (!conflict) {
+        for (let j = 0; j < 3; j++) {
+          const cellIndex = line[j];
+          const newNumber = j === 0 ? triplet.a : j === 1 ? triplet.b : triplet.c;
+          numbers[cellIndex] = newNumber;
         }
+        solutions.push({ triplet, line });
+        assignedLines.add(line.join(','));
+      }
     }
+    tripletIndex++;
+    lineIndex++;
+  }
 
-    // Mélanger la grille pour répartir les nombres
-    shuffleArray(numbers);
+  // Remplir les cellules restantes
+  for (let i = 0; i < numbers.length; i++) {
+    if (numbers[i] === 0) {
+      numbers[i] = getRandomInt(1, 10);
+    }
+  }
 
-    return solutions.length;
+  shuffleArray(numbers);
+  return solutions.length;
 }
 
 /**
- * Trouve toutes les solutions possibles dans la grille actuelle.
+ * Recherche toutes les solutions possibles dans la grille.
  * @returns {Array} - Liste des solutions trouvées.
  */
 function findAllSolutions() {
-    let solutions = [];
-    const lines = getAllAlignedLines();
+  let solutions = [];
+  const lines = getAllAlignedLines();
 
-    lines.forEach(line => {
-        const [i1, i2, i3] = line;
-        const a = numbers[i1];
-        const b = numbers[i2];
-        const c = numbers[i3];
-
-        // Vérifier (a × b) + c
-        if ((a * b) + c === target) {
-            solutions.push({
-                expression: `(${a} × ${b}) + ${c} = ${target}`,
-                cells: [i1, i2, i3]
-            });
-        }
-
-        // Vérifier (a × b) - c
-        if ((a * b) - c === target) {
-            solutions.push({
-                expression: `(${a} × ${b}) - ${c} = ${target}`,
-                cells: [i1, i2, i3]
-            });
-        }
-    });
-
-    return solutions;
-}
-
-/**
- * Génère le plateau de jeu dans le DOM.
- */
-function generateGrid() {
-    gridElement.innerHTML = '';
-    numbers.forEach((num, index) => {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.textContent = num;
-        cell.dataset.index = index;
-        cell.addEventListener('click', selectCell);
-        gridElement.appendChild(cell);
-    });
-}
-
-/**
- * Vérifie si on peut sélectionner une nouvelle cellule (newIndex)
- * en restant dans un alignement (lignes/colonnes/diagonales de 3).
- */
-function canSelectCell(newIndex) {
-    // On récupère la sélection actuelle + la nouvelle cellule
-    const tentative = [...selectedCells, newIndex];
-    // On trie pour comparer plus simplement (ex: [1,2] vs [2,1])
-    tentative.sort((a,b) => a - b);
-
-    // Si on n'a aucune cellule, on peut sélectionner n'importe quoi en premier
-    if (selectedCells.length === 0) {
-        return true;
-    }
-
-    // On parcourt allAlignedTriplets pour voir si 'tentative' est "compatible"
-    // avec un triplet existant
-    const possible = allAlignedTriplets.some(line => {
-        // line est un tableau de 3 indices, ex: [0,1,2]
-        const sortedLine = [...line].sort((a,b) => a - b);
-
-        if (tentative.length === 1) {
-            // On a juste 1 cellule => c'est toujours ok
-            return true;
-        } else if (tentative.length === 2) {
-            // On veut que ces 2 indices soient inclus dans 'line'
-            return tentative.every(idx => sortedLine.includes(idx));
-        } else if (tentative.length === 3) {
-            // On veut exactement un triplet identique
-            return JSON.stringify(sortedLine) === JSON.stringify(tentative);
-        }
-        return false;
-    });
-
-    return possible;
-}
-
-/**
- * Gère la sélection des cellules par l'utilisateur.
- * @param {Event} event - L'événement de clic sur une cellule.
- */
-function selectCell(event) {
-    const cell = event.target;
-    const index = parseInt(cell.dataset.index, 10);
-
-    // Si on reclique sur la même cellule, on la désélectionne
-    if (selectedCells.includes(index)) {
-        selectedCells = selectedCells.filter(i => i !== index);
-        cell.classList.remove('selected');
-        updateCalculationDisplay();
-        updateOperatorButtonsState();
-        return;
-    }
-
-    // Vérifier si on peut ajouter cette cellule en respectant l'alignement
-    if (canSelectCell(index)) {
-        if (selectedCells.length < 3) {
-            selectedCells.push(index);
-            cell.classList.add('selected');
-        }
-    } else {
-        // Ici, on peut soit ne rien faire, soit afficher un message d'erreur
-        // alert("Ces cellules ne sont pas côte à côte !");
-        return;
-    }
-
-    updateCalculationDisplay();
-    updateOperatorButtonsState();
-
-    if (selectedCells.length === 3) {
-        // Activer les boutons opérateurs
-        operatorButtons.forEach(button => button.disabled = false);
-    } else {
-        // Désactiver les boutons opérateurs si moins de 3 cellules
-        operatorButtons.forEach(button => button.disabled = true);
-    }
-}
-
-/**
- * Met à jour l'affichage du calcul en fonction des cellules sélectionnées.
- */
-function updateCalculationDisplay() {
-    if (selectedCells.length === 0) {
-        calculationElement.innerHTML = 'a × b ? c';
-        return;
-    }
-
-    const selectedNumbers = selectedCells.map(index => numbers[index]);
-    let display = '';
-
-    selectedNumbers.forEach((num, idx) => {
-        display += `<span class="selected-number">${num}</span>`;
-        if (idx < selectedNumbers.length - 1) {
-            display += ` × `;
-        }
-    });
-
-    display += ` ? `;
-    calculationElement.innerHTML = display;
-}
-
-/**
- * Met à jour l'état des boutons opérateurs en fonction des cellules sélectionnées.
- */
-function updateOperatorButtonsState() {
-    if (selectedCells.length === 3) {
-        operatorButtons.forEach(button => button.disabled = false);
-    } else {
-        operatorButtons.forEach(button => button.disabled = true);
-    }
-}
-
-/**
- * Gère la sélection de l'opérateur par l'utilisateur.
- * @param {Event} event - L'événement de clic sur un bouton opérateur.
- */
-function selectOperator(event) {
-    const operator = event.target.dataset.operator;
-    selectedOperator = operator;
-
-    performCalculation();
-}
-
-/**
- * Effectue le calcul et vérifie si la solution est correcte.
- */
-function performCalculation() {
-    if (selectedCells.length !== 3 || !selectedOperator) return;
-
-    const [i1, i2, i3] = selectedCells;
+  lines.forEach(line => {
+    const [i1, i2, i3] = line;
     const a = numbers[i1];
     const b = numbers[i2];
     const c = numbers[i3];
 
-    let result;
-    let expression = `(${a} × ${b}) ${selectedOperator} ${c}`;
-
-    if (selectedOperator === '+') {
-        result = (a * b) + c;
-    } else if (selectedOperator === '-') {
-        result = (a * b) - c;
+    if ((a * b) + c === target) {
+      solutions.push({
+        expression: `(${a} × ${b}) + ${c} = ${target}`,
+        cells: [i1, i2, i3]
+      });
     }
-
-    if (result === target) {
-        feedbackElement.innerHTML = `Correct ! ${expression} = ${target}`;
-        feedbackElement.className = 'feedback correct';
-        highlightSolution(a, b, c, selectedOperator);
-        saveScore('Gagné');
-    } else {
-        feedbackElement.innerHTML = `Incorrect. ${expression} = ${result} ≠ ${target}`;
-        feedbackElement.className = 'feedback incorrect';
-        saveScore('Perdu');
+    if ((a * b) - c === target) {
+      solutions.push({
+        expression: `(${a} × ${b}) - ${c} = ${target}`,
+        cells: [i1, i2, i3]
+      });
     }
+  });
 
-    // Désactiver les boutons opérateurs après le calcul
-    operatorButtons.forEach(button => button.disabled = true);
-
-    // ==> Remettre à zéro la sélection :
-    clearSelection();
+  return solutions;
 }
 
 /**
- * Met en évidence les solutions correctes dans la grille.
- * @param {number} a - Premier nombre du triplet.
- * @param {number} b - Deuxième nombre du triplet.
- * @param {number} c - Troisième nombre du triplet.
- * @param {string} operator - Opérateur utilisé ('+' ou '-').
+ * Génère la grille dans le DOM.
+ */
+function generateGrid() {
+  gridElement.innerHTML = '';
+  numbers.forEach((num, index) => {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.textContent = num;
+    cell.dataset.index = index;
+    cell.addEventListener('click', selectCell);
+    gridElement.appendChild(cell);
+  });
+}
+
+/**
+ * Vérifie la sélection en s'assurant que les cellules restent alignées.
+ */
+function canSelectCell(newIndex) {
+  const tentative = [...selectedCells, newIndex];
+  tentative.sort((a, b) => a - b);
+
+  if (selectedCells.length === 0) return true;
+
+  return allAlignedTriplets.some(line => {
+    const sortedLine = [...line].sort((a, b) => a - b);
+    if (tentative.length === 1) return true;
+    else if (tentative.length === 2) return tentative.every(idx => sortedLine.includes(idx));
+    else if (tentative.length === 3) return JSON.stringify(sortedLine) === JSON.stringify(tentative);
+    return false;
+  });
+}
+
+/**
+ * Gère la sélection d'une cellule.
+ */
+function selectCell(event) {
+  const cell = event.target;
+  const index = parseInt(cell.dataset.index, 10);
+
+  if (selectedCells.includes(index)) {
+    selectedCells = selectedCells.filter(i => i !== index);
+    cell.classList.remove('selected');
+    updateCalculationDisplay();
+    updateOperatorButtonsState();
+    return;
+  }
+
+  if (canSelectCell(index)) {
+    if (selectedCells.length < 3) {
+      selectedCells.push(index);
+      cell.classList.add('selected');
+    }
+  } else {
+    return;
+  }
+
+  updateCalculationDisplay();
+  updateOperatorButtonsState();
+
+  if (selectedCells.length === 3) {
+    operatorButtons.forEach(button => button.disabled = false);
+  } else {
+    operatorButtons.forEach(button => button.disabled = true);
+  }
+}
+
+/**
+ * Met à jour l'affichage du calcul.
+ */
+function updateCalculationDisplay() {
+  if (selectedCells.length === 0) {
+    calculationElement.innerHTML = 'a × b ? c';
+    return;
+  }
+
+  const selectedNumbers = selectedCells.map(index => numbers[index]);
+  let display = '';
+
+  selectedNumbers.forEach((num, idx) => {
+    display += `<span class="selected-number">${num}</span>`;
+    if (idx < selectedNumbers.length - 1) display += ` × `;
+  });
+
+  display += ` ? `;
+  calculationElement.innerHTML = display;
+}
+
+/**
+ * Active ou désactive les boutons opérateurs.
+ */
+function updateOperatorButtonsState() {
+  if (selectedCells.length === 3) {
+    operatorButtons.forEach(button => button.disabled = false);
+  } else {
+    operatorButtons.forEach(button => button.disabled = true);
+  }
+}
+
+/**
+ * Gère la sélection de l'opérateur.
+ */
+function selectOperator(event) {
+  const operator = event.target.dataset.operator;
+  selectedOperator = operator;
+  performCalculation();
+}
+
+/**
+ * Effectue le calcul et vérifie la solution.
+ */
+function performCalculation() {
+  if (selectedCells.length !== 3 || !selectedOperator) return;
+
+  const [i1, i2, i3] = selectedCells;
+  const a = numbers[i1];
+  const b = numbers[i2];
+  const c = numbers[i3];
+
+  let result;
+  let expression = `(${a} × ${b}) ${selectedOperator} ${c}`;
+
+  if (selectedOperator === '+') {
+    result = (a * b) + c;
+  } else if (selectedOperator === '-') {
+    result = (a * b) - c;
+  }
+
+  if (result === target) {
+    feedbackElement.innerHTML = `Correct ! ${expression} = ${target}`;
+    feedbackElement.className = 'feedback correct';
+    highlightSolution(a, b, c, selectedOperator);
+    saveScore('Gagné');
+  } else {
+    feedbackElement.innerHTML = `Incorrect. ${expression} = ${result} ≠ ${target}`;
+    feedbackElement.className = 'feedback incorrect';
+    saveScore('Perdu');
+  }
+
+  operatorButtons.forEach(button => button.disabled = true);
+  clearSelection();
+}
+
+/**
+ * Met en évidence la solution dans la grille.
  */
 function highlightSolution(a, b, c, operator) {
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach(cell => {
-        const num = parseInt(cell.textContent, 10);
-        if (num === a || num === b) {
-            cell.style.color = 'blue'; // Premier et deuxième nombre en bleu
-        } else if (num === c) {
-            cell.style.color = 'green'; // Troisième nombre en vert
-        } else {
-            cell.style.color = '#333';
-        }
-    });
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    const num = parseInt(cell.textContent, 10);
+    if (num === a || num === b) {
+      cell.style.color = 'blue';
+    } else if (num === c) {
+      cell.style.color = 'green';
+    } else {
+      cell.style.color = '#333';
+    }
+  });
 }
 
 /**
- * Réinitialise la sélection des cellules et les couleurs.
+ * Réinitialise la sélection.
  */
 function clearSelection() {
-    selectedCells = [];
-    selectedOperator = null;
-    calculationElement.innerHTML = 'a × b ? c';
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach(cell => {
-        cell.classList.remove('selected');
-        // Réinitialiser la couleur des cellules sauf celles déjà mises en évidence
-        if (!cell.classList.contains('highlight-solution')) {
-            cell.style.color = '#333';
-        }
-    });
+  selectedCells = [];
+  selectedOperator = null;
+  calculationElement.innerHTML = 'a × b ? c';
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    cell.classList.remove('selected');
+    if (!cell.classList.contains('highlight-solution')) {
+      cell.style.color = '#333';
+    }
+  });
 }
 
 /**
- * Réinitialise le jeu en générant une nouvelle grille avec au moins 6 solutions.
+ * Réinitialise le jeu en générant une nouvelle grille.
+ * En mode difficile, le nombre minimum de solutions est abaissé pour faciliter la génération.
  */
 function resetGame() {
-    clearSelection();
-    feedbackElement.textContent = '';
-    feedbackElement.className = 'feedback';
+  clearSelection();
+  feedbackElement.textContent = '';
+  feedbackElement.className = 'feedback';
 
-    let attempts = 0;
-    const maxAttempts = 1000; // Limite pour éviter une boucle infinie
-    let success = false;
+  let attempts = 0;
+  const maxAttempts = 1000;
+  let success = false;
 
-    while (attempts < maxAttempts && !success) {
-        attempts++;
-        // Générer une cible aléatoire selon le mode
-        if (currentMode === 'normal') {
-            target = getRandomInt(10, 50);
-        } else if (currentMode === 'facile') {
-            target = getRandomInt(5, 10);
-        }
-        targetElement.textContent = `Cible : ${target}`;
-        console.log(`Tentative ${attempts}: Cible ${target}`);
+  // Définir le nombre minimum de solutions selon le mode.
+  let minSolutions = 6;
+  if (currentMode === 'difficile') {
+    minSolutions = 3;
+  }
 
-        // Générer les nombres avec au moins 6 solutions
-        const solutionCount = generateNumbersWithAtLeastSixSolutions(6);
-        generateGrid();
-
-        // (Re)définir allAlignedTriplets pour la grille 5x5
-        // Note : la grille 5x5 n'a pas changé de dimensions, 
-        // mais on réinitialise par précaution si un jour on change la taille.
-        allAlignedTriplets = getAllAlignedLines();
-
-        const solutions = findAllSolutions();
-        console.log(`Solutions trouvées: ${solutions.length}`);
-
-        if (solutions.length >= 6) {
-            success = true;
-            console.log(`Grille générée avec ${solutions.length} solutions en ${attempts} tentatives.`);
-        } else {
-            // Réinitialiser la grille pour la prochaine tentative
-            numbers = [];
-            gridElement.innerHTML = '';
-        }
+  while (attempts < maxAttempts && !success) {
+    attempts++;
+    if (currentMode === 'normal') {
+      target = getRandomInt(10, 50);
+    } else if (currentMode === 'facile') {
+      target = getRandomInt(5, 10);
+    } else if (currentMode === 'difficile') {
+      target = getRandomInt(50, 100);
     }
+    targetElement.textContent = `Cible : ${target}`;
+    console.log(`Tentative ${attempts}: Cible ${target}`);
 
-    if (!success) {
-        console.error('Impossible de générer une grille avec au moins 6 solutions.');
-        targetElement.textContent = `Cible : ${target}`;
+    const solutionCount = generateNumbersWithAtLeastSixSolutions(minSolutions);
+    generateGrid();
+    allAlignedTriplets = getAllAlignedLines();
+
+    const solutions = findAllSolutions();
+    console.log(`Solutions trouvées: ${solutions.length}`);
+
+    if (solutions.length >= minSolutions) {
+      success = true;
+      console.log(`Grille générée avec ${solutions.length} solutions en ${attempts} tentatives.`);
+    } else {
+      numbers = [];
+      gridElement.innerHTML = '';
     }
+  }
 
-    // Réinitialiser les couleurs des cellules mises en évidence
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach(cell => {
-        cell.style.color = '#333';
-        cell.classList.remove('highlighted');
-        cell.classList.remove('highlight-solution');
-    });
+  if (!success) {
+    console.error('Impossible de générer une grille avec au moins ' + minSolutions + ' solutions.');
+    targetElement.textContent = `Cible : ${target}`;
+  }
 
-    // Réinitialiser la zone de calcul
-    calculationElement.innerHTML = 'a × b ? c';
+  // Réinitialiser les styles des cellules
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    cell.style.color = '#333';
+    cell.classList.remove('highlighted');
+    cell.classList.remove('highlight-solution');
+  });
 
-    // Vider les solutions affichées
-    solutionsList.innerHTML = '';
+  calculationElement.innerHTML = 'a × b ? c';
+  solutionsList.innerHTML = '';
 }
 
 /**
  * Enregistre le score de la partie.
- * @param {string} result - Résultat de la partie ('Gagné' ou 'Perdu').
  */
 function saveScore(result) {
-    const timestamp = new Date().toLocaleTimeString();
-    const li = document.createElement('li');
-    li.innerHTML = `${timestamp} - ${result}`;
-    scoreboardList.prepend(li);
+  const timestamp = new Date().toLocaleTimeString();
+  const li = document.createElement('li');
+  li.innerHTML = `${timestamp} - ${result}`;
+  scoreboardList.prepend(li);
 }
 
 /**
- * Génère un nombre aléatoire entre min et max (inclus).
- * @param {number} min - Valeur minimale.
- * @param {number} max - Valeur maximale.
- * @returns {number} - Nombre aléatoire généré.
+ * Génère un nombre entier aléatoire entre min et max (inclus).
  */
 function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /**
- * Mélange un tableau en place en utilisant l'algorithme de Fisher-Yates.
- * @param {Array} array - Tableau à mélanger.
- * @returns {Array} - Tableau mélangé.
+ * Mélange un tableau en utilisant l'algorithme de Fisher-Yates.
  */
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = getRandomInt(0, i);
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = getRandomInt(0, i);
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 /**
- * Trouve tous les triplets possibles (a, b, c) qui satisfont a × b + c = target ou a × b - c = target.
- * @param {number} target - La cible à atteindre.
- * @returns {Array} - Liste des triplets possibles.
+ * Trouve tous les triplets (a, b, c) vérifiant (a × b) + c = target ou (a × b) - c = target.
  */
 function findPossibleTriplets(target) {
-    const triplets = [];
-    const maxA = Math.floor(Math.sqrt(target + 50)); // Ajuster selon le besoin
-    const maxB = Math.floor(target / 2); // Pour éviter des valeurs trop grandes
+  const triplets = [];
+  const maxA = Math.floor(Math.sqrt(target + 50));
+  const maxB = Math.floor(target / 2);
 
-    for (let a = 1; a <= maxA; a++) {
-        for (let b = 1; b <= maxB; b++) {
-            // Pour l'opérateur '+'
-            let cPlus = target - (a * b);
-            if (cPlus >= 1 && cPlus <= 50) {
-                triplets.push({ a, b, c: cPlus, operator: '+' });
-            }
-
-            // Pour l'opérateur '-'
-            let cMinus = (a * b) - target;
-            if (cMinus >= 1 && cMinus <= 50) {
-                triplets.push({ a, b, c: cMinus, operator: '-' });
-            }
-        }
+  for (let a = 1; a <= maxA; a++) {
+    for (let b = 1; b <= maxB; b++) {
+      let cPlus = target - (a * b);
+      if (cPlus >= 1 && cPlus <= 50) {
+        triplets.push({ a, b, c: cPlus, operator: '+' });
+      }
+      let cMinus = (a * b) - target;
+      if (cMinus >= 1 && cMinus <= 50) {
+        triplets.push({ a, b, c: cMinus, operator: '-' });
+      }
     }
+  }
 
-    // Retirer les doublons
-    const uniqueTriplets = [];
-    const seen = new Set();
+  // Éliminer les doublons
+  const uniqueTriplets = [];
+  const seen = new Set();
+  triplets.forEach(triplet => {
+    const key = `${triplet.a},${triplet.b},${triplet.c},${triplet.operator}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueTriplets.push(triplet);
+    }
+  });
 
-    triplets.forEach(triplet => {
-        const key = `${triplet.a},${triplet.b},${triplet.c},${triplet.operator}`;
-        if (!seen.has(key)) {
-            seen.add(key);
-            uniqueTriplets.push(triplet);
-        }
-    });
-
-    return uniqueTriplets;
+  return uniqueTriplets;
 }
 
 /**
- * Obtient toutes les lignes alignées de trois cellules dans la grille (indices [0..24]).
- * @returns {Array} - Liste (tableau) de triplets [i, j, k].
+ * Retourne toutes les lignes alignées de 3 cellules dans la grille.
  */
 function getAllAlignedLines() {
-    let lines = [];
+  let lines = [];
 
-    // Horizontal (5 lignes, 3 triplets par ligne)
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x <= gridSize - 3; x++) {
-            const line = [
-                y * gridSize + x,
-                y * gridSize + (x + 1),
-                y * gridSize + (x + 2)
-            ];
-            lines.push(line);
-        }
+  // Lignes horizontales
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x <= gridSize - 3; x++) {
+      const line = [
+        y * gridSize + x,
+        y * gridSize + (x + 1),
+        y * gridSize + (x + 2)
+      ];
+      lines.push(line);
     }
+  }
 
-    // Vertical (5 colonnes, 3 triplets par colonne)
-    for (let x = 0; x < gridSize; x++) {
-        for (let y = 0; y <= gridSize - 3; y++) {
-            const line = [
-                y * gridSize + x,
-                (y + 1) * gridSize + x,
-                (y + 2) * gridSize + x
-            ];
-            lines.push(line);
-        }
-    }
-
-    // Diagonale descendante (\)
+  // Colonnes verticales
+  for (let x = 0; x < gridSize; x++) {
     for (let y = 0; y <= gridSize - 3; y++) {
-        for (let x = 0; x <= gridSize - 3; x++) {
-            const line = [
-                y * gridSize + x,
-                (y + 1) * gridSize + (x + 1),
-                (y + 2) * gridSize + (x + 2)
-            ];
-            lines.push(line);
-        }
+      const line = [
+        y * gridSize + x,
+        (y + 1) * gridSize + x,
+        (y + 2) * gridSize + x
+      ];
+      lines.push(line);
     }
+  }
 
-    // Diagonale montante (/)
-    for (let y = 2; y < gridSize; y++) {
-        for (let x = 0; x <= gridSize - 3; x++) {
-            const line = [
-                y * gridSize + x,
-                (y - 1) * gridSize + (x + 1),
-                (y - 2) * gridSize + (x + 2)
-            ];
-            lines.push(line);
-        }
+  // Diagonale descendante (\)
+  for (let y = 0; y <= gridSize - 3; y++) {
+    for (let x = 0; x <= gridSize - 3; x++) {
+      const line = [
+        y * gridSize + x,
+        (y + 1) * gridSize + (x + 1),
+        (y + 2) * gridSize + (x + 2)
+      ];
+      lines.push(line);
     }
+  }
 
-    return lines;
+  // Diagonale montante (/)
+  for (let y = 2; y < gridSize; y++) {
+    for (let x = 0; x <= gridSize - 3; x++) {
+      const line = [
+        y * gridSize + x,
+        (y - 1) * gridSize + (x + 1),
+        (y - 2) * gridSize + (x + 2)
+      ];
+      lines.push(line);
+    }
+  }
+
+  return lines;
 }
 
 /**
  * Affiche toutes les solutions possibles dans la section dédiée.
  */
 function displayAllSolutions() {
-    solutionsList.innerHTML = ''; // Vider les solutions précédentes
-    const solutions = findAllSolutions();
+  solutionsList.innerHTML = '';
+  const solutions = findAllSolutions();
 
-    if (solutions.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'Aucune solution trouvée.';
-        solutionsList.appendChild(li);
-        return;
-    }
+  if (solutions.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'Aucune solution trouvée.';
+    solutionsList.appendChild(li);
+    return;
+  }
 
-    solutions.forEach(solution => {
-        const li = document.createElement('li');
-        li.innerHTML = `<span class="solution-expression">${solution.expression}</span>`;
-        solutionsList.appendChild(li);
+  solutions.forEach(solution => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="solution-expression">${solution.expression}</span>`;
+    solutionsList.appendChild(li);
 
-        // Mettre en évidence les cellules de la solution
-        solution.cells.forEach(index => {
-            const cell = gridElement.querySelector(`.cell[data-index='${index}']`);
-            if (cell) {
-                cell.classList.add('highlight-solution');
-            }
-        });
+    // Met en évidence les cellules de la solution
+    solution.cells.forEach(index => {
+      const cell = gridElement.querySelector(`.cell[data-index='${index}']`);
+      if (cell) {
+        cell.classList.add('highlight-solution');
+      }
     });
+  });
 }
 
 /**
- * Réinitialise les mises en évidence des solutions.
+ * Efface les mises en évidence des solutions.
  */
 function clearSolutionHighlights() {
-    const highlightedCells = gridElement.querySelectorAll('.highlight-solution');
-    highlightedCells.forEach(cell => {
-        cell.classList.remove('highlight-solution');
-    });
+  const highlightedCells = gridElement.querySelectorAll('.highlight-solution');
+  highlightedCells.forEach(cell => {
+    cell.classList.remove('highlight-solution');
+  });
 }
 
-// Ajouter un écouteur d'événement au bouton magique
+// Écouteurs d'événements
 showSolutionsButton.addEventListener('click', () => {
-    clearSolutionHighlights(); // Réinitialiser les mises en évidence précédentes
-    displayAllSolutions();
+  clearSolutionHighlights();
+  displayAllSolutions();
 });
 
-// Ajouter des écouteurs d'événements aux boutons opérateurs
 operatorButtons.forEach(button => {
-    button.addEventListener('click', selectOperator);
+  button.addEventListener('click', selectOperator);
 });
 
-// Ajouter un écouteur d'événement au sélecteur de mode
 modeSelect.addEventListener('change', (event) => {
-    currentMode = event.target.value;
-    resetGame();
+  currentMode = event.target.value;
+  resetGame();
 });
 
-// Événements pour les boutons
 resetButton.addEventListener('click', resetGame);
 saveButton.addEventListener('click', () => {
-    if (feedbackElement.textContent) {
-        saveScore(feedbackElement.classList.contains('correct') ? 'Gagné' : 'Perdu');
-    }
+  if (feedbackElement.textContent) {
+    saveScore(feedbackElement.classList.contains('correct') ? 'Gagné' : 'Perdu');
+  }
 });
 
 // Initialisation du jeu
